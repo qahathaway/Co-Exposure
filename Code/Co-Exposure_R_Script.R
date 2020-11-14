@@ -1,7 +1,7 @@
 
 ####Salmon/Tximport####
 
-library(Leonardi4.0)
+library(Co-Exposure)
 
 library(GenomicFeatures)
 library(tximport)
@@ -11,15 +11,15 @@ library(dplyr)
 library(AnnotationDbi)
 
 library(tximportData)
-dir <- system.file("extdata", package = "Leonardi4.0", mustWork=TRUE)
+dir <- system.file("extdata", package = "Co-Exposure", mustWork=TRUE)
 list.files(dir)
 list.files(file.path(dir, "quants"))
 
-csvfile <- file.path(dir, "sample_table_Mouse_Leonardi_F.csv")
+csvfile <- file.path(dir, "sample_table.csv")
 coldata <- read.csv(csvfile, row.names=1, stringsAsFactors=FALSE)
 coldata
 
-coldata <- coldata[1:16,]
+coldata <- coldata[1:28,]
 coldata$names <- coldata$Run
 coldata$files <- file.path(dir, "quants", coldata$names, "quant.sf")
 file.exists(coldata$files)
@@ -43,69 +43,26 @@ rowRanges(gse)
 seqinfo(rowRanges(gse))
 colData(gse)
 
-#files <- file.path(dir, "quants", coldata$Run, "quant.sf")
-#names(files) <- paste0("sample", 1:32)
-#all(file.exists(files))
-
-#library(EnsDb.Mmusculus.v79)
-#TxDb <- EnsDb.Mmusculus.v79
-#k <- keys(TxDb, keytype = "TXNAME")
-#tx2gene <- select(TxDb, k, "GENEID", "TXNAME")
-#head(tx2gene)
-
-#txi <- tximport(file, design = ~ genotype + diet + genotype:diet)es, type = "salmon", tx2gene = tx2gene, ignoreTxVersion = TRUE)
-#names(txi)
-
-#head(txi$counts)
-#txi.tx <- tximport(files, type = "salmon", txOut = TRUE, ignoreTxVersion = TRUE)
-#txi.sum <- summarizeToGene(txi.tx, tx2gene, ignoreTxVersion = TRUE)
-#all.equal(txi$counts, txi.sum$counts)
 
 ####Make Counts Table####
 
-#assay(gse)
-#resOrderedDF <- as.data.frame(assay(gse))
-#write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Counts_Table_Male_mRNA_gene.csv")
+assay(gse)
+resOrderedDF <- as.data.frame(assay(gse))
+write.csv(resOrderedDF, file = ".../counts_table.csv")
+
 
 ####DESeq2####
 
-#library(magrittr)
-#levels(gse$genotype)
-#gse$genotype <- relevel(gse$genotype, "WT")
-#gse$genotype %<>% relevel("WT")
-#gse$diet
-
 round( colSums(assay(gse)) / 1e6, 1 )
 
-
 library(DESeq2)
-
-#Use group for general comparison(1st), use interaction term for interactions (2nd), pairwise comparisions (3rd) 
-
-#dds <- DESeqDataSet(gse, design = ~ genotype + diet + sex)
-dds <- DESeqDataSet(gse, design = ~ genotype + diet + genotype:diet)
-#dds <- DESeqDataSet(gse, design = ~ group)
+dds <- DESeqDataSet(gse, design = ~ treatment + duration)
 
 nrow(dds)
 
-keep <- rowSums(counts(dds) >= 10) >= 4
+keep <- rowSums(counts(dds) >= 3) >= 1
 dds <- dds[keep,]
 nrow(dds)
-
-dds$genotype <- relevel(dds$genotype, ref = "WT")
-dds$genotype
-levels(dds$genotype)
-
-#rownames(coldata) <- colnames(txi$counts)
-
-#dds <- DESeqDataSetFromTximport(txi, samples, ~dex)
-
-#nrow(dds)
-#keep <- rowSums(counts(dds)) > 1
-#dds <- dds[keep,]
-#nrow(dds)
-
-#keep <- rowSums(counts(dds) >= 5) >= 3
 
 
 ##Data Normalization Assessment##
@@ -128,12 +85,6 @@ df <- bind_rows(
   as_tibble(assay(vsd)[, 1:2]) %>% mutate(transformation = "vst"),
   as_tibble(assay(rld)[, 1:2]) %>% mutate(transformation = "rlog"))
 
-#df <- bind_rows(
-#  as_data_frame(log2(counts(dds, normalized=TRUE)[, 1:2]+1)) %>%
-#    mutate(transformation = "log2(x + 1)"),
-#  as_data_frame(assay(vsd)[, 1:2]) %>% mutate(transformation = "vst"),
-#  as_data_frame(assay(rld)[, 1:2]) %>% mutate(transformation = "rlog"))
-
 colnames(df)[1:2] <- c("x", "y")  
 
 lvls <- c("log2(x + 1)", "vst", "rlog")
@@ -150,7 +101,7 @@ sampleDists
 library("pheatmap")
 library("RColorBrewer")
 sampleDistMatrix <- as.matrix( sampleDists )
-rownames(sampleDistMatrix) <- paste( vsd$genotype, vsd$diet, sep = " - " )
+rownames(sampleDistMatrix) <- paste( vsd$treatment, vsd$duration, sep = " - " )
 colnames(sampleDistMatrix) <- NULL
 colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
 pheatmap(sampleDistMatrix,
@@ -158,12 +109,11 @@ pheatmap(sampleDistMatrix,
          clustering_distance_cols = sampleDists,
          col = colors)
 
-
 library("PoiClaClu")
 poisd <- PoissonDistance(t(counts(dds)))
 
 samplePoisDistMatrix <- as.matrix( poisd$dd )
-rownames(samplePoisDistMatrix) <- paste( dds$genotype, dds$diet, sep=" - " )
+rownames(samplePoisDistMatrix) <- paste( dds$treatment, dds$duration, sep=" - " )
 colnames(samplePoisDistMatrix) <- NULL
 pheatmap(samplePoisDistMatrix,
          clustering_distance_rows = poisd$dd,
@@ -172,49 +122,37 @@ pheatmap(samplePoisDistMatrix,
 
 
 ##PCA Plot##
-#genotype and diet#
-plotPCA(vsd, intgroup = c("genotype", "diet"))
-pcaData <- plotPCA(vsd, intgroup = c("genotype", "diet"), returnData = TRUE)
+#treatment and duration#
+plotPCA(vsd, intgroup = c("treatment", "duration"))
+pcaData <- plotPCA(vsd, intgroup = c("treatment", "duration"), returnData = TRUE)
 pcaData
 percentVar <- round(100 * attr(pcaData, "percentVar"))
-ggplot(pcaData, aes(x = PC1, y = PC2, color = genotype, shape = diet)) +
+ggplot(pcaData, aes(x = PC1, y = PC2, color = treatment, shape = duration)) +
   geom_point(size=3) +
   xlab(paste0("PC1: ", percentVar[1], "% variance")) +
   ylab(paste0("PC2: ", percentVar[2], "% variance")) +
   coord_fixed() +
   ggtitle("PCA with VST data")
 
-#genotype, diet, and sex#
-plotPCA(vsd, intgroup = c("genotype", "diet", "sex"))
-pcaData <- plotPCA(vsd, intgroup = c("genotype", "diet", "sex"), returnData = TRUE)
-pcaData
-percentVar <- round(100 * attr(pcaData, "percentVar"))
-ggplot(pcaData, aes(x = PC1, y = PC2, color = genotype, shape = diet, size = sex)) + geom_point() +
-  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-  ylab(paste0("PC2: ", percentVar[2], "% variance")) +
-  coord_fixed() +
-  ggtitle("PCA with VST data")
-
-
 library("glmpca")
 gpca <- glmpca(counts(dds), L=2)
 gpca.dat <- gpca$factors
-gpca.dat$genotype <- dds$genotype
-gpca.dat$diet <- dds$diet
+gpca.dat$treatment <- dds$treatment
+gpca.dat$duration <- dds$duration
 
-ggplot(gpca.dat, aes(x = dim1, y = dim2, color = genotype, shape = diet)) +
+ggplot(gpca.dat, aes(x = dim1, y = dim2, color = treatment, shape = duration)) +
   geom_point(size =3) + coord_fixed() + ggtitle("glmpca - Generalized PCA")
 
 
 ##MDS Plot##
 mds <- as.data.frame(colData(vsd))  %>%
   cbind(cmdscale(sampleDistMatrix))
-ggplot(mds, aes(x = `1`, y = `2`, color = genotype, shape = diet)) +
+ggplot(mds, aes(x = `1`, y = `2`, color = treatment, shape = duration)) +
   geom_point(size = 3) + coord_fixed() + ggtitle("MDS with VST data")
 
 mdsPois <- as.data.frame(colData(dds)) %>%
   cbind(cmdscale(samplePoisDistMatrix))
-ggplot(mdsPois, aes(x = `1`, y = `2`, color = genotype, shape = diet)) +
+ggplot(mdsPois, aes(x = `1`, y = `2`, color = treatment, shape = duration)) +
   geom_point(size = 3) + coord_fixed() + ggtitle("MDS with PoissonDistances")
 
 
@@ -223,90 +161,37 @@ ggplot(mdsPois, aes(x = `1`, y = `2`, color = genotype, shape = diet)) +
 dds <- DESeq(dds)
 resultsNames(dds)
 
+#untrt = Sham-1, untrt2 = Sham-4, trt = CB-1, trt2 = CB-4, trt3 = O3-1, trt4 = O3-4, trt5 = CB-O3-1, trt6 = CB-O3-4#
 
-#Middle group is "treatment", end group is "control"
-##General##
-res01 <- results(dds, contrast=c("genotype","KO","WT"), alpha = 0.05)
-mcols(res01, use.names = TRUE)
-summary(res01)
-table(res01$padj < 0.05)
-
-res02 <- results(dds, contrast=c("diet","WD","CD"), alpha = 0.05)
-mcols(res02, use.names = TRUE)
-summary(res02)
-table(res02$padj < 0.05)
-
-res03 <- results(dds, contrast=c("sex","Female","Male"), alpha = 0.05)
-mcols(res03, use.names = TRUE)
-summary(res03)
-table(res03$padj < 0.05)
-
-##More Specific##
-#Interaction Sets#
-#Do individually for male and female
-resWT <- results(dds, contrast=c("diet", "WD", "CD"), alpha = 0.05)
-resKO <- results(dds, list(c("diet_WD_vs_CD", "genotypeKO.dietWD")), alpha = 0.05)
-resI <- results(dds, name="genotypeKO.dietWD", alpha = 0.05)
-
-#resWT2 <- lfcShrink(dds, res = resWT, type="ashr")
-#resKO2 <- lfcShrink(dds, res = resKO, type="ashr")
-#resI2 <- lfcShrink(dds, res = resI, type="ashr")
-
-ixWT = which.min(resWT$padj) # most significaggplot(pcaData, aes(x = PC1, y = PC2, color = genotype, shape = diet)) +
-geom_point(size=3) +
-  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-  ylab(paste0("PC2: ", percentVar[2], "% variance")) +
-  coord_fixed() +
-  nt
-barplot(assay(dds)[ixWT,],las=2,names=coldata$Run,cex.names=0.9, main=rownames(dds)[ ixWT  ]  )
-
-ixKO = which.min(resKO$padj) # most significant
-barplot(assay(dds)[ixKO,],las=2,names=coldata$Run,cex.names=0.9, main=rownames(dds)[ ixKO  ]  )
-
-ixI = which.min(resI$padj) # most significant
-barplot(assay(dds)[ixI,],las=2,names=coldata$Run,cex.names=0.9, main=rownames(dds)[ ixI  ]  )
-#barplot(assay(dds)[ixI,],las=2,names=coldata$Run,cex.names=0.9,beside=TRUE,col=rep(c("black","white"),each=8), main=rownames(dds)[ ixI  ]  )
-
-##Most Specific##
-res1 <- results(dds, contrast=c("group","KOFWD","WTFWD"), alpha = 0.05)
+res1 <- results(dds, contrast=c("treatment","trt","untrt"), alpha = 0.05)
 mcols(res1, use.names = TRUE)
 summary(res1)
 table(res1$padj < 0.05)
 
-res2 <- results(dds, contrast=c("group","KOMWD","WTMWD"), alpha = 0.05)
+res2 <- results(dds, contrast=c("treatment","trt3","untrt"), alpha = 0.05)
 mcols(res2, use.names = TRUE)
 summary(res2)
 table(res2$padj < 0.05)
 
-res3 <- results(dds, contrast=c("group","KOFCD","WTFCD"), alpha = 0.05)
+res3 <- results(dds, contrast=c("treatment","trt5","untrt"), alpha = 0.05)
 mcols(res3, use.names = TRUE)
 summary(res3)
 table(res3$padj < 0.05)
 
-res4 <- results(dds, contrast=c("group","KOMCD","WTMCD"), alpha = 0.05)
+res4 <- results(dds, contrast=c("treatment","trt2","untrt2"), alpha = 0.05)
 mcols(res4, use.names = TRUE)
 summary(res4)
 table(res4$padj < 0.05)
 
-#res5 <- results(dds, contrast=c("group","KOFWD","KOMWD"), alpha = 0.05)
-#mcols(res5, use.names = TRUE)
-#summary(res5)
-#table(res5$padj < 0.05)
+res5 <- results(dds, contrast=c("treatment","trt4","untrt2"), alpha = 0.05)
+mcols(res5, use.names = TRUE)
+summary(res5)
+table(res5$padj < 0.05)
 
-#res6 <- results(dds, contrast=c("group","WTFWD","WTMWD"), alpha = 0.05)
-#mcols(res6, use.names = TRUE)
-#summary(res6)
-#table(res6$padj < 0.05)
-
-#res7 <- results(dds, contrast=c("group","KOFCD","KOMCD"), alpha = 0.05)
-#mcols(res7, use.names = TRUE)
-#summary(res7)
-#table(res7$padj < 0.05)
-
-#res8 <- results(dds, contrast=c("group","WTFCD","WTMCD"), alpha = 0.05)
-#mcols(res8, use.names = TRUE)
-#summary(res8)
-#table(res8$padj < 0.05)
+res6 <- results(dds, contrast=c("treatment","trt6","untrt2"), alpha = 0.05)
+mcols(res6, use.names = TRUE)
+summary(res6)
+table(res6$padj < 0.05)
 
 
 

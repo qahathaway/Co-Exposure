@@ -161,7 +161,7 @@ ggplot(mdsPois, aes(x = `1`, y = `2`, color = treatment, shape = duration)) +
 dds <- DESeq(dds)
 resultsNames(dds)
 
-#untrt = Sham-1, untrt2 = Sham-4, trt = CB-1, trt2 = CB-4, trt3 = O3-1, trt4 = O3-4, trt5 = CB-O3-1, trt6 = CB-O3-4#
+###untrt = Sham-1, untrt2 = Sham-4, trt = CB-1, trt2 = CB-4, trt3 = O3-1, trt4 = O3-4, trt5 = CB-O3-1, trt6 = CB-O3-4###
 
 res1 <- results(dds, contrast=c("treatment","trt","untrt"), alpha = 0.05)
 mcols(res1, use.names = TRUE)
@@ -194,133 +194,69 @@ summary(res6)
 table(res6$padj < 0.05)
 
 
-
 ##VennDiagram##
 library(limma)
 
-res1 <- results(dds, contrast=c("group","KOFWD","WTFWD"), alpha = 0.05)
-res1 <- res1[which(res1$padj < 0.05),]
-res1.genes <- row.names(res1)
-
-res2 <- results(dds, contrast=c("group","KOMWD","WTMWD"), alpha = 0.05)
+res2 <- results(dds, contrast=c("treatment","trt3","untrt"), alpha = 0.05)
 res2 <- res2[which(res2$padj < 0.05),]
 res2.genes <- row.names(res2)
+
+res5 <- results(dds, contrast=c("treatment","trt4","untrt2"), alpha = 0.05)
+res5 <- res5[which(res5$padj < 0.05),]
+res5.genes <- row.names(res5)
 
 res3 <- results(dds, contrast=c("group","KOFCD","WTFCD"), alpha = 0.05)
 res3 <- res3[which(res3$padj < 0.05),]
 res3.genes <- row.names(res3)
 
-res4 <- results(dds, contrast=c("group","KOMCD","WTMCD"), alpha = 0.05)
-res4 <- res4[which(res4$padj < 0.05),]
-res4.genes <- row.names(res4)
+res6 <- results(dds, contrast=c("treatment","trt6","untrt2"), alpha = 0.05)
+res6 <- res6[which(res6$padj < 0.05),]
+res6.genes <- row.names(res6)
 
-#res5 <- results(dds, contrast=c("group","KOFWD","KOMWD"), alpha = 0.05)
-#res5 <- res5[which(res5$padj < 0.05),]
-#res5.genes <- row.names(res5)
+Unique <- sort(unique(c(res2.genes, res5.genes, res3.genes, res6.genes)))
 
-#res6 <- results(dds, contrast=c("group","WTFWD","WTMWD"), alpha = 0.05)
-#res6 <- res6[which(res6$padj < 0.05),]
-#res6.genes <- row.names(res6)
-
-#res7 <- results(dds, contrast=c("group","KOFCD","KOMCD"), alpha = 0.05)
-#res7 <- res7[which(res7$padj < 0.05),]
-#res7.genes <- row.names(res7)
-
-#res8 <- results(dds, contrast=c("group","WTFCD","WTMCD"), alpha = 0.05)
-#res8 <- res8[which(res8$padj < 0.05),]
-#res8.genes <- row.names(res8)
-
-#Unique <- sort(unique(c(res1.genes, res2.genes)))
-#Unique <- sort(unique(c(res1.genes, res2.genes, res3.genes)))
-Unique <- sort(unique(c(res1.genes, res2.genes, res3.genes, res4.genes)))
-#Unique <- sort(unique(c(res5.genes, res6.genes, res7.genes, res8.genes)))
-#Unique <- sort(unique(c(res1.genes, res2.genes, res3.genes, res4.genes, res5.genes, res6.genes, res7.genes, res8.genes)))
-
-
-res1.genes.2 <- Unique %in% res1.genes
 res2.genes.2 <- Unique %in% res2.genes
+res5.genes.2 <- Unique %in% res5.genes
 res3.genes.2 <- Unique %in% res3.genes
-res4.genes.2 <- Unique %in% res4.genes
-#res5.genes.2 <- Unique %in% res5.genes
-#res6.genes.2 <- Unique %in% res6.genes
-#res7.genes.2 <- Unique %in% res7.genes
-#res8.genes.2 <- Unique %in% res8.genes
+res6.genes.2 <- Unique %in% res6.genes
 
-
-#counts.1 <- cbind(res1.genes.2,res2.genes.2)
-#counts.1 <- cbind(res1.genes.2,res2.genes.2,res3.genes.2)
-counts.1 <- cbind(res1.genes.2,res2.genes.2,res3.genes.2,res4.genes.2)
-#counts.1 <- cbind(res5.genes.2,res6.genes.2,res7.genes.2,res8.genes.2)
-#counts.1 <- cbind(res1.genes.2,res2.genes.2,res3.genes.2,res4.genes.2,res5.genes.2,res6.genes.2,res7.genes.2,res8.genes.2)
-
+counts.1 <- cbind(res2.genes.2,res5.genes.2,res3.genes.2,res6.genes.2)
 results.1 <- vennCounts(counts.1, include="both")
-
-#vennDiagram(results.1, include="both", cex = 1, names = c("",""), circle.col = c("blue", "red"))
-#vennDiagram(results.1, include="both", cex = 1, names = c("","",""), circle.col = c("blue", "red", "green"))
 vennDiagram(results.1, include="both", cex = 1, names = c("","","",""), circle.col = c("blue", "red", "green", "black"))
-
-#library(UpSetR)
-#UpSetHisto <- as.data.frame(array(as.numeric(unlist(results.1)), dim=c(256, 9)))
-#upset(UpSetHisto, sets = c("V1", "V2", "V3", "V4", "V5", 
-#                           "V6", "V7", "V8"), order.by = "freq", nsets = 8)
-#upset(UpSetHisto)
 
 
 ##Other Visualizations##
 library(vidger)
 
-vsBoxPlot(dds, d.factor = "group", type = "deseq")
-vsDEGMatrix(dds, d.factor = "group", padj = 0.05, type = "deseq")
-#vsFourWay("trt2", "trt", "untrt2", d.factor = "group", dds, type = "deseq")
-vsMAMatrix(dds, d.factor = "group", type = "deseq", y.lim = c(-10,10))
-vsScatterMatrix(dds, d.factor = "group", type = "deseq")
-#vsScatterPlot("untrt2", "trt2", dds, d.factor = "group", type = "deseq")
-#vsVolcano("untrt2", "trt2", dds, d.factor = "group", type = "deseq", x.lim = c(-10,10), padj = 0.05)
-vsVolcanoMatrix(dds, d.factor = "group", type = "deseq", lfc = 2, padj = 0.05, x.lim = c(-8,8),
+vsBoxPlot(dds, d.factor = "treamtment", type = "deseq")
+vsDEGMatrix(dds, d.factor = "treamtment", padj = 0.05, type = "deseq")
+vsFourWay("trt2", "trt", "untrt2", d.factor = "group", dds, type = "deseq")
+vsMAMatrix(dds, d.factor = "treamtment", type = "deseq", y.lim = c(-10,10))
+vsScatterMatrix(dds, d.factor = "treamtment", type = "deseq")
+vsScatterPlot("untrt2", "trt2", dds, d.factor = "treamtment", type = "deseq")
+vsVolcano("untrt2", "trt2", dds, d.factor = "treamtment", type = "deseq", x.lim = c(-10,10), padj = 0.05)
+vsVolcanoMatrix(dds, d.factor = "treamtment", type = "deseq", lfc = 2, padj = 0.05, x.lim = c(-8,8),
                 title = FALSE, legend = TRUE, grid = TRUE, counts = FALSE, facet.title.size = 10)
 
 
 ##Volcano Plots##
 library(EnhancedVolcano)
-
-#write.csv(Unique, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Salik_mRNA/Salmon_1.1.0_Output/Salik_mRNA_unique_1_trt6.csv")
-#write.csv(counts.1, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Salik_mRNA/Salmon_1.1.0_Output/Salik_mRNA_unique_2_trt6.csv")
-
-#resUNIQUE <- read.csv("/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Salik_mRNA/Salmon_1.1.0_Output/Salik_mRNA_unique_3_trt6.csv", row.names = 1)
-
-#EnhancedVolcano(resUNIQUE, lab = rownames(resUNIQUE), x = "log2FoldChange", y = "padj", pCutoff = 0.05,
-#                xlim = c(-10, 8),  ylim = c(0, -log10(10e-11)))
-
-EnhancedVolcano(res01, lab = rownames(res01), x = "log2FoldChange", y = "padj", pCutoff = 0.05,
+EnhancedVolcano(res1, lab = rownames(res1), x = "log2FoldChange", y = "padj", pCutoff = 0.05,
                 xlim = c(-7.5, 7.5))
-
-EnhancedVolcano(res02, lab = rownames(res02), x = "log2FoldChange", y = "padj", pCutoff = 0.05,
-                xlim = c(-7.5, 7.5))
-
-EnhancedVolcano(res3, lab = rownames(res3), x = "log2FoldChange", y = "padj", pCutoff = 0.05,
-                xlim = c(-7.5, 7.5))
-
-EnhancedVolcano(res4, lab = rownames(res4), x = "log2FoldChange", y = "padj", pCutoff = 0.05,
-                xlim = c(-7.5, 7.5))
-
-
 
 
 ##Plotting Results##
-topGene <- rownames(res01)[which.min(res01$padj)]
-plotCounts(dds, gene = topGene, intgroup=c("genotype"))
-
-#GeneofChoice <- "ENSMUSG00000092341"
-#plotCounts(dds, gene = GeneofChoice, intgroup=c("genotype"))
-
+topGene <- rownames(res1)[which.min(res1$padj)]
+plotCounts(dds, gene = topGene, intgroup=c("treatment"))
 
 library("ggbeeswarm")
-geneCounts <- plotCounts(dds, gene = topGene, intgroup = c("genotype","diet"),
+geneCounts <- plotCounts(dds, gene = topGene, intgroup = c("treatment","duration"),
                          returnData = TRUE)
-ggplot(geneCounts, aes(x = genotype, y = count, color = diet)) +
+
+ggplot(geneCounts, aes(x = treatment, y = count, color = duration)) +
   scale_y_log10() +  geom_beeswarm(cex = 3)
 
-ggplot(geneCounts, aes(x = genotype, y = count, color = diet, group = diet)) +
+ggplot(geneCounts, aes(x = treatment, y = count, color = duration, group = duration)) +
   scale_y_log10() + geom_point(size = 3) + geom_line()
 
 
@@ -328,158 +264,61 @@ ggplot(geneCounts, aes(x = genotype, y = count, color = diet, group = diet)) +
 library("apeglm")
 resultsNames(dds)
 
-#res <- lfcShrink(dds, coef="genotype_WT_vs_KO", type="apeglm")
-#plotMA(res01, ylim = c(-5, 5))
-#res.noshr <- results(dds, name="genotype_WT_vs_KO")
-#plotMA(res.noshr, ylim = c(-5, 5))
+res1 <- lfcShrink(dds, coef="genotype_trt_vs_untrt", type="apeglm")
+plotMA(res01, ylim = c(-5, 5))
 
-plotMA(res01, ylim = c(-5,5))
-topGene <- rownames(res01)[which.min(res01$padj)]
-with(res01[topGene, ], {
-  points(baseMean, log2FoldChange, col="dodgerblue", cex=2, lwd=2)
-  text(baseMean, log2FoldChange, topGene, pos=2, col="dodgerblue")
-})
+res2 <- lfcShrink(dds, coef="genotype_trt3_vs_untrt", type="apeglm")
+plotMA(res01, ylim = c(-5, 5))
 
+res3 <- lfcShrink(dds, coef="genotype_trt5_vs_untrt", type="apeglm")
+plotMA(res01, ylim = c(-5, 5))
 
-plotMA(res02, ylim = c(-5,5))
-topGene <- rownames(res02)[which.min(res02$padj)]
-with(res02[topGene, ], {
-  points(baseMean, log2FoldChange, col="dodgerblue", cex=2, lwd=2)
-  text(baseMean, log2FoldChange, topGene, pos=2, col="dodgerblue")
-})
+res4 <- lfcShrink(dds, coef="genotype_trt2_vs_untrt2", type="apeglm")
+plotMA(res01, ylim = c(-5, 5))
 
+res5 <- lfcShrink(dds, coef="genotype_trt4_vs_untrt2", type="apeglm")
+plotMA(res01, ylim = c(-5, 5))
 
-plotMA(res03, ylim = c(-10,10))
-topGene <- rownames(res03)[which.min(res03$padj)]
-with(res03[topGene, ], {
-  points(baseMean, log2FoldChange, col="dodgerblue", cex=2, lwd=2)
-  text(baseMean, log2FoldChange, topGene, pos=2, col="dodgerblue")
-})
+res6 <- lfcShrink(dds, coef="genotype_trt6_vs_untrt2", type="apeglm")
+plotMA(res01, ylim = c(-5, 5))
+
 
 ##Histogram of p vaules for genes with mean normalized count larger than 2##
-hist(res1$pvalue[res$baseMean > 1], breaks = 0:20/20,
+
+hist(res1$pvalue[res$baseMean > 2], breaks = 0:20/20,
      col = "grey50", border = "white")
+
 
 ##Gene Clustering##
 
 library("genefilter")
 topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 1000)
 #or#
-#topGenes <- head(order(res01$padj),decreasing = TRUE, 50)
+topGenes <- head(order(res01$padj),decreasing = TRUE, 50)
 
 mat  <- assay(vsd)[ topVarGenes, ]
 mat  <- mat - rowMeans(mat)
-anno <- as.data.frame(colData(vsd)[, c("diet","genotype","sex")])
+anno <- as.data.frame(colData(vsd)[, c("treatment","duration")])
 pheatmap(mat, annotation_col = anno)
 
-#Annotating and Exporting
+
+##Annotating and Exporting##
 library("AnnotationDbi")
 library("org.Mm.eg.db")
 
 columns(org.Mm.eg.db)
 
-ens.str01 <- rownames(res01)
-res01$symbol <- mapIds(org.Mm.eg.db,
-                      keys=ens.str01,
-                      column="SYMBOL",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-res01$entrez <- mapIds(org.Mm.eg.db,
-                      keys=ens.str01,
-                      column="ENTREZID",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-
-resOrdered01 <- res01[order(res01$padj),]
-head(resOrdered01)
-
-ens.str02 <- rownames(res02)
-res02$symbol <- mapIds(org.Mm.eg.db,
-                      keys=ens.str02,
-                      column="SYMBOL",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-res02$entrez <- mapIds(org.Mm.eg.db,
-                      keys=ens.str02,
-                      column="ENTREZID",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-
-resOrdered02 <- res02[order(res02$padj),]
-head(resOrdered02)
-
-ens.str03 <- rownames(res03)
-res03$symbol <- mapIds(org.Mm.eg.db,
-                      keys=ens.str03,
-                      column="SYMBOL",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-res03$entrez <- mapIds(org.Mm.eg.db,
-                      keys=ens.str03,
-                      column="ENTREZID",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-
-resOrdered03 <- res03[order(res03$padj),]
-head(resOrdered03)
-
-ens.strWT <- rownames(resWT)
-resWT$symbol <- mapIds(org.Mm.eg.db,
-                       keys=ens.strWT,
-                       column="SYMBOL",
-                       keytype="ENSEMBL",
-                       multiVals="first")
-resWT$entrez <- mapIds(org.Mm.eg.db,
-                       keys=ens.strWT,
-                       column="ENTREZID",
-                       keytype="ENSEMBL",
-                       multiVals="first")
-
-resOrderedWT <- resWT[order(resWT$padj),]
-head(resOrderedWT)
-
-ens.strKO <- rownames(resKO)
-resKO$symbol <- mapIds(org.Mm.eg.db,
-                       keys=ens.strKO,
-                       column="SYMBOL",
-                       keytype="ENSEMBL",
-                       multiVals="first")
-resKO$entrez <- mapIds(org.Mm.eg.db,
-                       keys=ens.strKO,
-                       column="ENTREZID",
-                       keytype="ENSEMBL",
-                       multiVals="first")
-
-resOrderedKO <- resKO[order(resKO$padj),]
-head(resOrderedKO)
-
-ens.strI <- rownames(resI)
-resI$symbol <- mapIds(org.Mm.eg.db,
-                      keys=ens.strI,
-                      column="SYMBOL",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-resI$entrez <- mapIds(org.Mm.eg.db,
-                      keys=ens.strI,
-                      column="ENTREZID",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-
-resOrderedI <- resI[order(resI$padj),]
-head(resOrderedI)
-
-
 ens.str1 <- rownames(res1)
 res1$symbol <- mapIds(org.Mm.eg.db,
-                     keys=ens.str1,
-                     column="SYMBOL",
-                     keytype="ENSEMBL",
-                     multiVals="first")
+                      keys=ens.str1,
+                      column="SYMBOL",
+                      keytype="ENSEMBL",
+                      multiVals="first")
 res1$entrez <- mapIds(org.Mm.eg.db,
-                     keys=ens.str1,
-                     column="ENTREZID",
-                     keytype="ENSEMBL",
-                     multiVals="first")
+                      keys=ens.str1,
+                      column="ENTREZID",
+                      keytype="ENSEMBL",
+                      multiVals="first")
 
 resOrdered1 <- res1[order(res1$padj),]
 head(resOrdered1)
@@ -559,85 +398,36 @@ res6$entrez <- mapIds(org.Mm.eg.db,
 resOrdered6 <- res6[order(res6$padj),]
 head(resOrdered6)
 
-ens.str7 <- rownames(res7)
-res7$symbol <- mapIds(org.Mm.eg.db,
-                      keys=ens.str7,
-                      column="SYMBOL",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-res7$entrez <- mapIds(org.Mm.eg.db,
-                      keys=ens.str7,
-                      column="ENTREZID",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-
-resOrdered7 <- res7[order(res7$padj),]
-head(resOrdered7)
-
-ens.str8 <- rownames(res8)
-res8$symbol <- mapIds(org.Mm.eg.db,
-                      keys=ens.str8,
-                      column="SYMBOL",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-res8$entrez <- mapIds(org.Mm.eg.db,
-                      keys=ens.str8,
-                      column="ENTREZID",
-                      keytype="ENSEMBL",
-                      multiVals="first")
-
-resOrdered8 <- res8[order(res8$padj),]
-head(resOrdered8)
 
 ##Exporting Results##
 
-resOrderedDF <- as.data.frame(resOrdered01)[1:15000, ]
-write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Final/Female_Genotype.csv")
+resOrderedDF <- as.data.frame(resOrdered1)[1:25000, ]
+write.csv(resOrderedDF, file = ".../res1.csv")
 
-resOrderedDF <- as.data.frame(resOrdered02)[1:15000, ]
-write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Final/Female_Diet.csv")
+resOrderedDF <- as.data.frame(resOrdered2)[1:25000, ]
+write.csv(resOrderedDF, file = ".../res2.csv")
 
-resOrderedDF <- as.data.frame(resOrdered03)[1:15000, ]
-write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Final/Sex.csv")
+resOrderedDF <- as.data.frame(resOrdered3)[1:25000, ]
+write.csv(resOrderedDF, file = ".../res3.csv")
 
-resOrderedDF <- as.data.frame(resOrderedWT)[1:15000, ]
-write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Final/Diet_Effect_on_WT_M.csv")
+resOrderedDF <- as.data.frame(resOrdered4)[1:25000, ]
+write.csv(resOrderedDF, file = ".../res4.csv")
 
-resOrderedDF <- as.data.frame(resOrderedKO)[1:15000, ]
-write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Final/Diet_Effect_on_KO_M.csv")
+resOrderedDF <- as.data.frame(resOrdered5)[1:25000, ]
+write.csv(resOrderedDF, file = ".../res5.csv")
 
-resOrderedDF <- as.data.frame(resOrderedI)[1:15000, ]
-write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Final/Interaction_M.csv")
+resOrderedDF <- as.data.frame(resOrdered6)[1:25000, ]
+write.csv(resOrderedDF, file = ".../res6.csv")
 
-resOrderedDF <- as.data.frame(resOrdered1)[1:15000, ]
-write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Final/KOFWDvsWTFWD.csv")
+resOrderedDF <- as.data.frame(resOrdered7)[1:25000, ]
+write.csv(resOrderedDF, file = ".../res7.csv")
 
-resOrderedDF <- as.data.frame(resOrdered2)[1:15000, ]
-write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Final/KOMWDvsWTMWD.csv")
+resOrderedDF <- as.data.frame(resOrdered8)[1:25000, ]
+write.csv(resOrderedDF, file = ".../res8.csv")
 
-resOrderedDF <- as.data.frame(resOrdered3)[1:15000, ]
-write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Final/KOFCDvsWTFCD.csv")
-
-resOrderedDF <- as.data.frame(resOrdered4)[1:15000, ]
-write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/Final/KOMCDvsWTMCD.csv")
-
-#resOrderedDF <- as.data.frame(resOrdered5)[1:15000, ]
-#write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/KOFWDvsKOMWD.csv")
-
-#resOrderedDF <- as.data.frame(resOrdered6)[1:15000, ]
-#write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/WTFWDvsWTMWD.csv")
-
-#resOrderedDF <- as.data.frame(resOrdered7)[1:15000, ]
-#write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/KOFCDvsKOMCD.csv")
-
-#resOrderedDF <- as.data.frame(resOrdered7LfcS)[1:15000, ]
-#write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/KOFCDvsKOMCD_Shrink.csv")
-
-#resOrderedDF <- as.data.frame(resOrdered8)[1:15000, ]
-#write.csv(resOrderedDF, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/Output/WTFCDvsWTMCD.csv")
 
 ##Genomic Space##
-resGR <- lfcShrink(dds, coef="genotype_WT_vs_KO", type="apeglm", format="GRanges")
+resGR <- lfcShrink(dds, coef="genotype_trt_vs_untrt", type="apeglm", format="GRanges")
 resGR
 
 ens.str <- rownames(res1)
@@ -663,19 +453,16 @@ plotTracks(list(g, d, a), groupAnnotation = "group",
            notsig = "grey", sig = "hotpink")
 
 
-
 ##Gene Ontology##
 library(topGO)
 library(KEGG.db)
-
-#resUNIQUE2 <- read.csv("/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Salik_mRNA/Salmon_1.1.0_Output/Salik_mRNA_unique_4_trt6.csv", row.names = 1)
 
 rowsum.threshold <- 1 # user chosen
 fdr.threshold <- 0.05 # user chosen
 rs <- rowSums(counts(dds))
 dds <- dds[ rs > rowsum.threshold ,]
 dds <- DESeq(dds)
-res <- results(dds, contrast=c("group","KOFWD","KOFCD"), independentFiltering=FALSE, alpha = 0.05) # use count threshold instead of IF
+res <- results(dds, contrast=c("treatment","trt","untrt"), independentFiltering=FALSE, alpha = 0.05) # use count threshold instead of IF
 assayed.genes <- rownames(res)
 de.genes <- rownames(res)[ which(res$padj < fdr.threshold) ]
 gene.vector=as.integer(assayed.genes%in%de.genes)
@@ -693,7 +480,7 @@ head(GO.wall)
 #GO.samp=goseq(pwf,"mm9","ensGene",method="Sampling",repcnt=1000)
 #head(GO.samp)
 
-write.csv(GO.wall, file = "/home/john/Documents/Bioinformatics_Seq_Files/Fastq/Salik_mRNA/Salmon_1.1.0_Output/Salik_GO_Unique_CB-O3_Day4.csv")
+write.csv(GO.wall, file = ".../GO.csv")
 
 KEGG=goseq(pwf,'mm9','ensGene',test.cats="KEGG")
 head(KEGG)

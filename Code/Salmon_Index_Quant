@@ -1,0 +1,35 @@
+
+INDEX
+
+grep "^>" <(gunzip -c /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz) | cut -d " " -f 1 > /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon/decoys.txt
+
+sed -i.bak -e 's/>//g' /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon/decoys.txt
+
+cat /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Mus_musculus.GRCm38.cdna.all.fa.gz /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz > /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon/gentrome.fa.gz
+
+salmon index -t /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon/gentrome.fa.gz -d /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon/decoys.txt -p 12 -i /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon_Mouse_E99
+
+
+QUANT
+
+salmon quant -i /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon_Mouse_E99 -l A -1 /home/john/Documents/Bioinformatics_Seq_Files/Fastq/Salik_mRNA/Hussain-M108-CB-O3_S40_L006_R1_001.fastq.gz -2 /home/john/Documents/Bioinformatics_Seq_Files/Fastq/Salik_mRNA/Hussain-M108-CB-O3_S40_L006_R2_001.fastq.gz --validateMappings --gcBias --threads 32 -o /home/john/Documents/Bioinformatics_Seq_Files/Fastq/Salik_mRNA/Salmon_1.1.0/CB-O3_Day4_S3
+
+
+#####Leonardi_mRNA#####
+
+INDEX
+
+grep "^>" </home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Mus_musculus.GRCm38.dna.primary_assembly_101.fa | cut -d " " -f 1 > /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon/decoys.txt
+
+sed -i.bak -e 's/>//g' /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon/decoys.txt
+
+cat /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Mus_musculus.GRCm38.cdna.all_101.fa /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Mus_musculus.GRCm38.dna.primary_assembly_101.fa > /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon/gentrome.fa
+
+salmon index -t /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon/gentrome.fa -d /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon/decoys.txt -p 12 -i /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon_Mouse_E101
+
+
+QUANT
+
+salmon quant -i /home/john/Documents/Bioinformatics_Seq_Files/Reference_Genomes/Salmon_Mouse_E101 -l A -1 /home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/32-Leonardi-5562-KOF-WD-fed_S84_L005_R1_001.fastq.gz -2 /home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/32-Leonardi-5562-KOF-WD-fed_S84_L005_R2_001.fastq.gz --validateMappings --gcBias --seqBias --threads 32 -o /home/john/Documents/Bioinformatics_Seq_Files/Fastq/Leonardi_mRNA/SALMON_Files/KOF-WD4
+
+

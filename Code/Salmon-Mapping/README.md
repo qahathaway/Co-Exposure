@@ -1,1 +1,1 @@
-Mapping Report from Salmon 1.1.0
+# Mapping Report from Salmon 1.1.0

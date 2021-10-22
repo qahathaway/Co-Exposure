@@ -1,4 +1,4 @@
-# Hierachical Clustering - Heatmaps
+# Hierarchical Clustering - Heatmaps
 
 ## Dictionary
 

@@ -2,11 +2,11 @@
 
 ## Dictionary
 
-###cell = Number of Exposures
+### cell = Number of Exposures
 Four = total of four exposures
 One = single exposure
 
-###dex = Treatment or Control Groups
+### dex = Treatment or Control Groups
 trt = carbon black (CB) , single exposure
 trt2 = carbon black (CB) , four exposures
 trt3 = ozone (O3) , single exposure
